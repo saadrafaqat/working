@@ -673,6 +673,6 @@ const QUESTION_BANK = {
             { id: "ns_e156", q: "Choose the correctly spelled word:", a: ["Aprehension", "Apprehension", "Apprehansion", "Apprehensun"], c: 1, e: "The correct spelling is 'apprehension', meaning anxiety or fear that something bad will happen.[cite: 5]" },
             { id: "ns_e157", q: "Choose the correctly spelled word:", a: ["Paraphenalia", "Paraphernalia", "Paraphrenalia", "Paraphernelia"], c: 1, e: "The correct spelling is 'paraphernalia', meaning miscellaneous articles or equipment.[cite: 5]" },
             { id: "ns_e158", q: "Choose the correctly spelled word:", a: ["Soverignty", "Sovereignty", "Sovereignity", "Suverainty"], c: 1, e: "The correct spelling is 'sovereignty', meaning supreme power or authority.[cite: 5]" }
-        ];
+        ]
     }
 };
