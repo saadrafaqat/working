@@ -9,7 +9,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NUST Computer Based Entry Test (CBNET)</title>
     
-    <!-- KaTeX for math rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
@@ -57,13 +56,11 @@
         .workspace-container { display:flex; border-bottom:2px solid #0055A5; min-height:300px; }
         .left-main-canvas { flex:1; display:flex; flex-direction:column; border-right:2px solid #0055A5; }
         .question-meta-bar { background:#D4E6F1; color:#003399; font-weight:bold; font-size:13px; padding:5px 10px; border-bottom:1px solid #0055A5; display:flex; justify-content:space-between; }
-        /* Question body with passage support */
         .question-body-pane { padding:18px 20px; font-size:15px; font-weight:600; color:#000; min-height:100px; border-bottom:2px solid #0055A5; line-height:1.6; background:#FFF; text-align:left; }
         .passage-container { background:#F8F9FA; border:1px solid #BDC3C7; border-left:4px solid #0055A5; padding:14px 16px; margin-bottom:14px; font-weight:400; font-size:14px; line-height:1.7; color:#333; border-radius:4px; }
         .passage-label { font-size:11px; font-weight:700; color:#0055A5; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
         .question-text { font-weight:600; font-size:15px; }
         .question-diagram { display:block; max-width:280px; height:auto; margin:12px auto; border-radius:6px; border:1px solid #D5DBDB; }
-        .equation-inline { display:inline; }
         .options-pane-title { background:#D4E6F1; color:#003399; font-weight:bold; font-size:13px; padding:5px 10px; border-bottom:1px solid #0055A5; }
         .options-list-wrapper { padding:12px 15px; display:flex; flex-direction:column; gap:6px; background:#FFF; flex:1; }
         .option-row-item { display:flex; align-items:center; border:1px solid #A9CCE3; padding:10px 14px; background:white; cursor:pointer; border-radius:4px; }
@@ -71,6 +68,8 @@
         .option-row-item.selected { background:#D4E6F1; border:1px solid #0055A5; font-weight:bold; }
         .option-radio-input { margin-right:12px; transform:scale(1.2); cursor:pointer; flex-shrink:0; }
         .option-text { text-align:left; font-size:14px; }
+        .option-text .katex { font-size:1.05em; }
+        .option-text .katex-display { display:inline-block; }
         .right-photo-panel { width:160px; padding:12px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; background:#FFF; }
         .photo-box-frame { width:120px; height:140px; border:1px solid #003399; display:flex; align-items:center; justify-content:center; text-align:center; font-weight:bold; font-size:13px; color:#555; background:#FAFAFA; margin-bottom:12px; }
         .navigation-grid-wrapper { border:1px solid #0055A5; margin:8px 0; padding:8px; background:#F2F4F4; }
@@ -101,9 +100,28 @@
         .review-box { border:1px solid #BDC3C7; text-align:left; padding:12px; margin-top:8px; font-size:13px; line-height:1.5; background:#FFF9F9; border-left:5px solid #FF0000; }
         .review-box.box-correct { background:#F4FBF7; border-left:5px solid #2ECC71; }
         .hidden { display:none !important; }
-        /* KaTeX fixes */
         .katex-display { display:inline-block; margin:0; }
         .katex { font-size:1.1em; }
+        /* Hide browser's native radio circle - we use label-based selection */
+        .option-radio-input { display:none; }
+        /* Style the custom radio indicator */
+        .option-row-item::before {
+            content: '';
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid #A9CCE3;
+            margin-right: 12px;
+            flex-shrink: 0;
+            background: white;
+            transition: all 0.2s;
+        }
+        .option-row-item.selected::before {
+            border-color: #0055A5;
+            background: #0055A5;
+            box-shadow: inset 0 0 0 3px white;
+        }
     </style>
 </head>
 <body>
@@ -241,7 +259,6 @@
         <div class="score-output" id="totalScoreTarget">0 / 200</div>
         <div id="subjectScoreBreakdownBox" style="text-align:left;background:#F8F9F9;padding:12px;font-size:13px;line-height:1.6;border:1px solid #BDC3C7;margin-bottom:15px;"></div>
         
-        <!-- EXIT PORTAL BUTTON -->
         <button class="login-btn" style="margin:0 auto 20px auto;display:block;width:150px;background:linear-gradient(135deg,#C0392B,#E74C3C);box-shadow:0 4px 12px rgba(192,57,43,0.3);" onclick="window.location.reload()">Exit Portal</button>
         
         <div id="wrongQuestionsReviewPanel" style="text-align:left;margin-bottom:20px;"></div>
@@ -250,7 +267,6 @@
 </div>
 
 <script>
-// ===== FIELD CONFIG =====
 const FIELD_CONFIG = {
     'engineering': {
         label: 'NET-Engineering', code: 'ENG', description: 'Engineering / Computing / ICS Stream', totalMCQs: 200,
@@ -302,7 +318,6 @@ function authenticateUserLogin() {
     if (!candidateId || !pass) { alert('Both Roll Number and Password are required.'); return; }
     if (pass !== 'NUST2026') { alert('Access Denied: Invalid Access Password.'); return; }
     document.getElementById('fieldSelectCandidateId').innerText = candidateId;
-    // Hide login, show field selection
     document.getElementById('loginScreenView').style.display = 'none';
     document.getElementById('fieldSelectScreenView').style.display = 'flex';
 }
@@ -318,6 +333,68 @@ function selectField(el, val) {
     el.classList.add('selected');
     el.querySelector('input').checked = true;
     selectedField = val;
+}
+
+function wrapMathEnvironments(text) {
+    const envs = [
+        'matrix', 'pmatrix', 'bmatrix', 'Bmatrix', 'vmatrix', 'Vmatrix',
+        'array', 'cases', 'dcases', 'rcases', 'drcases',
+        'aligned', 'gathered', 'split',
+        'smallmatrix', 'subarray'
+    ];
+    let result = text;
+    for (const env of envs) {
+        const regex = new RegExp(
+            '(?<!\\$|\\\\\\()' +
+            '(\\\\begin\\{' + env + '\\})' +
+            '([\\s\\S]*?)' +
+            '(\\\\end\\{' + env + '\\})' +
+            '(?!\\$|\\\\\\))',
+            'g'
+        );
+        result = result.replace(regex, '$$$1$2$3$$');
+    }
+    const specialEnvs = ['align', 'equation', 'gather', 'CD', 'alignat', 'flalign', 'multline'];
+    for (const env of specialEnvs) {
+        const regex = new RegExp(
+            '(?<!\\$|\\\\\\()' +
+            '(\\\\begin\\{' + env + '\\})' +
+            '([\\s\\S]*?)' +
+            '(\\\\end\\{' + env + '\\})' +
+            '(?!\\$|\\\\\\))',
+            'g'
+        );
+        result = result.replace(regex, '$$$1$2$3$$');
+    }
+    return result;
+}
+
+function renderMathInElementSafe(element) {
+    if (typeof renderMathInElement !== 'function') return;
+    if (element.innerHTML) {
+        element.innerHTML = wrapMathEnvironments(element.innerHTML);
+    }
+    try {
+        renderMathInElement(element, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "\\begin{equation}", right: "\\end{equation}", display: true},
+                {left: "\\begin{align}", right: "\\end{align}", display: true},
+                {left: "\\begin{alignat}", right: "\\end{alignat}", display: true},
+                {left: "\\begin{gather}", right: "\\end{gather}", display: true},
+                {left: "\\begin{CD}", right: "\\end{CD}", display: true},
+                {left: "\\begin{flalign}", right: "\\end{flalign}", display: true},
+                {left: "\\begin{multline}", right: "\\end{multline}", display: true}
+            ],
+            throwOnError: false,
+            errorColor: '#CC0000'
+        });
+    } catch(e) {
+        console.warn('KaTeX rendering error:', e);
+    }
 }
 
 function startExam() {
@@ -410,73 +487,55 @@ function refreshWorkspace() {
     const label = SECTION_LABELS[q.sectionKeyName] || q.sectionKeyName.toUpperCase();
     const cfg = FIELD_CONFIG[selectedField];
 
-    document.getElementById('currentSubjectHeader').innerText = label;
-    document.getElementById('questionNumTracker').innerText = `Question No: ${q.innerIndexValue} of ${cfg.blueprint[q.sectionKeyName]} (${q.sectionKeyName.toUpperCase()})`;
+    document.getElementById('currentSubjectHeader').innerHTML = label;
+    document.getElementById('questionNumTracker').innerHTML = `Question No: ${q.innerIndexValue} of ${cfg.blueprint[q.sectionKeyName]} (${q.sectionKeyName.toUpperCase()})`;
 
-    // --- Build question display: passage + image + question text ---
     const qBox = document.getElementById('questionTextBox');
     let html = '';
 
-    // 1) Passage box (if the question has a passage field)
     if (q.passage) {
         html += `<div class="passage-container"><div class="passage-label">Read the following passage carefully:</div>${q.passage}</div>`;
     }
 
-    // 2) Question text
     html += `<div class="question-text">${q.q}</div>`;
 
-    // 3) Diagram image (if the question has an image field)
     if (q.image) {
         html += `<img class="question-diagram" src="${q.image}" alt="Diagram">`;
     }
 
     qBox.innerHTML = html;
+    renderMathInElementSafe(qBox);
 
-    // --- Render math with KaTeX ---
-    if (typeof renderMathInElement === 'function') {
-        renderMathInElement(qBox, {
-            delimiters: [
-                {left: "$$", right: "$$", display: true},
-                {left: "$", right: "$", display: false}
-            ]
-        });
-    }
-
-    // --- Build options ---
+    // Build options with clickable labels
     const cont = document.getElementById('optionsRadioGroup');
     cont.innerHTML = '';
+    
     q.a.forEach((opt, idx) => {
-        // Also render math in option text if present
         const row = document.createElement('div');
         row.className = 'option-row-item' + (q.chosenIndexValue === idx ? ' selected' : '');
-        row.onclick = () => { q.chosenIndexValue = idx; refreshWorkspace(); };
-        
-        const radio = document.createElement('input');
-        radio.type = 'radio';
-        radio.className = 'option-radio-input';
-        radio.name = 'nust_radio';
-        if (q.chosenIndexValue === idx) radio.checked = true;
+        row.setAttribute('data-opt-index', idx);
         
         const span = document.createElement('span');
         span.className = 'option-text';
-        span.textContent = opt;
+        span.innerHTML = opt;
         
-        row.appendChild(radio);
         row.appendChild(span);
         cont.appendChild(row);
     });
 
-    // Render math in options too if KaTeX is loaded
-    if (typeof renderMathInElement === 'function') {
-        renderMathInElement(cont, {
-            delimiters: [
-                {left: "$$", right: "$$", display: true},
-                {left: "$", right: "$", display: false}
-            ]
-        });
-    }
+    // Render KaTeX in options
+    renderMathInElementSafe(cont);
 
-    // --- Update navigation ---
+    // Simple click handler - just update data and refresh
+    cont.querySelectorAll('.option-row-item').forEach(row => {
+        row.addEventListener('click', function() {
+            const idx = parseInt(this.getAttribute('data-opt-index'));
+            q.chosenIndexValue = idx;
+            refreshWorkspace();
+        });
+    });
+
+    // Update navigation highlights
     document.querySelectorAll('.nav-square-btn').forEach(b => {
         b.classList.remove('active-focus');
         if (parseInt(b.getAttribute('data-sid'), 10) === globalPointerIndex) b.classList.add('active-focus');
@@ -562,7 +621,7 @@ function compileExamResults() {
         const chosen = i.chosenIndexValue !== null ? i.a[i.chosenIndexValue] : 'Unattempted';
         const right = i.a[i.c];
         const exp = i.e || 'No explanation provided.';
-        const dispQ = i.q.replace(/\$/g, ''); // strip KaTeX delimiters for review readability
+        const dispQ = i.q;
         if (correct) {
             logs[i.sectionKeyName] += `<div class="review-box box-correct"><p><strong>Q${i.innerIndexValue}:</strong> ${dispQ}</p><p style="color:#2ECC71;font-weight:700;margin-top:4px;">&#128994; Correct</p></div>`;
         } else {
@@ -581,7 +640,11 @@ function compileExamResults() {
         bd += `&bull; ${SECTION_LABELS[k] || k.toUpperCase()}: ${stats[k]} / ${cfg.blueprint[k]}<br>`;
     }
     document.getElementById('subjectScoreBreakdownBox').innerHTML = bd;
+    
     document.getElementById('wrongQuestionsReviewPanel').innerHTML = reviewHTML;
+    renderMathInElementSafe(document.getElementById('wrongQuestionsReviewPanel'));
+    renderMathInElementSafe(document.getElementById('subjectScoreBreakdownBox'));
+    
     document.getElementById('reportCardModalOverlay').style.display = 'flex';
 }
 </script>
