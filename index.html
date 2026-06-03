@@ -337,7 +337,7 @@ function authenticateUserLogin() {
     candidateId = document.getElementById('candidateIdInput').value.trim();
     const pass = document.getElementById('candidatePassInput').value.trim();
     if (!candidateId || !pass) { alert('Both Roll Number and Password are required.'); return; }
-    if (pass !== 'NUST2026') { alert('Access Denied: Invalid Access Password.'); return; }
+    if (pass !== 'nust2027') { alert('Access Denied: Invalid Access Password.'); return; }
     document.getElementById('fieldSelectCandidateId').innerText = candidateId;
     document.getElementById('loginScreenView').style.display = 'none';
     document.getElementById('fieldSelectScreenView').style.display = 'flex';
